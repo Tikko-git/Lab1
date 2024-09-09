@@ -1,0 +1,35 @@
+projects = {
+    "A.Ink": {
+        "price": 3400000,
+        "time_periods": [3, 3 + 3/12, 3 + 6/12],
+        "probabilities": [0.5, 0.3, 0.2]
+    },
+    "B.Ltd": {
+        "price": 2930000,
+        "time_periods": [3 + 2/12, 4, 4 + 5/12],
+        "probabilities": [0.3, 0.5, 0.2]
+    },
+    "A.T.C": {
+        "price": 2500000,
+        "time_periods": [4, 4 + 6/12, 5],
+        "probabilities": [0.1, 0.4, 0.5]
+    }
+}
+
+monthly_loss = 40000
+
+def calculate_expected_cost(project):
+    price = project["price"]
+    total_cost = 0
+    for time, probability in zip(project["time_periods"], project["probabilities"]):
+        losses = time * 12 * monthly_loss
+        total_cost += (price + losses) * probability
+    return total_cost
+
+expected_costs = {name: calculate_expected_cost(data) for name, data in projects.items()}
+
+for project, cost in expected_costs.items():
+    print(f"Очікувані витрати для проекту {project}: ${cost:,.2f}")
+
+optimal_project = min(expected_costs, key=expected_costs.get)
+print(f"Найбільш оптимальний проект для України: {optimal_project}")
