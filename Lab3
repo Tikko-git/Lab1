@@ -1,0 +1,74 @@
+Умова завдання:
+1. Нехай задано функцію корисності особи 2 U x x x ( ) 0,1 , 0.   Для лотерей L(0; 0,5; 20) та L(10; 0,5; 30) обчислити: сподіваний виграш, детермінований еквівалент та премію за ризик. Яку з лотерей обере особа? Чи схильна ця особа до ризику?
+
+Код:
+import numpy as np
+
+# Функція корисності
+def utility(x):
+    return 0.1 * x ** 2
+
+# Сподіваний виграш для лотереї
+def expected_utility(outcomes, probabilities):
+    return np.sum([p * utility(x) for x, p in zip(outcomes, probabilities)])
+
+# Лотерея 1
+outcomes_1 = [0, 20]  # можливі виграші
+probabilities_1 = [0.5, 0.5]  # ймовірності виграшів
+
+# Лотерея 2
+outcomes_2 = [10, 30]
+probabilities_2 = [0.5, 0.5]
+
+# Обчислення сподіваної корисності для кожної лотереї
+expected_utility_1 = expected_utility(outcomes_1, probabilities_1)
+expected_utility_2 = expected_utility(outcomes_2, probabilities_2)
+
+# Зворотна функція корисності (для знаходження детермінованого еквіваленту)
+def inverse_utility(U):
+    return np.sqrt(U / 0.1)
+
+# Детермінований еквівалент
+deterministic_equivalent_1 = inverse_utility(expected_utility_1)
+deterministic_equivalent_2 = inverse_utility(expected_utility_2)
+
+# Премія за ризик
+def risk_premium(expected_value, deterministic_equivalent):
+    return expected_value - deterministic_equivalent
+
+expected_value_1 = np.mean(outcomes_1)
+expected_value_2 = np.mean(outcomes_2)
+
+risk_premium_1 = risk_premium(expected_value_1, deterministic_equivalent_1)
+risk_premium_2 = risk_premium(expected_value_2, deterministic_equivalent_2)
+
+# Визначення схильності до ризику на основі премії за ризик
+def risk_attitude(risk_premium):
+    if risk_premium < 0:
+        return "Схильна до ризику"
+    elif risk_premium > 0:
+        return "Несхильна до ризику"
+    else:
+        return "Нейтральна до ризику"
+
+# Визначення вибору лотереї на основі більшої корисності
+def choose_lottery(utility_1, utility_2):
+    if utility_1 > utility_2:
+        return "Особа вибере лотерею 1"
+    elif utility_2 > utility_1:
+        return "Особа вибере лотерею 2"
+    else:
+        return "Особа байдужа до вибору лотереї"
+
+print(f"Лотерея 1: Сподіваний виграш = {expected_value_1}, Детермінований еквівалент = {deterministic_equivalent_1}, Премія за ризик = {risk_premium_1}")
+print(f"Лотерея 2: Сподіваний виграш = {expected_value_2}, Детермінований еквівалент = {deterministic_equivalent_2}, Премія за ризик = {risk_premium_2}")
+
+# Схильність до ризику
+attitude_1 = risk_attitude(risk_premium_1)
+attitude_2 = risk_attitude(risk_premium_2)
+print(f"Ставлення до ризику для лотереї 1: {attitude_1}")
+print(f"Ставлення до ризику для лотереї 2: {attitude_2}")
+
+# Вибір лотереї
+choice = choose_lottery(expected_utility_1, expected_utility_2)
+print(choice)
