@@ -1,0 +1,88 @@
+Умова завдання:
+1. Котирування акцій українських підприємств впродовж 2014 року (11 періодів) наведено в таблиці.
+Необхідно:
+а) оцінити сподівану норму прибутку та ризик (середньоквадратичне відхилення) кожної акції;
+б) визначити коваріаційну та кореляційну матриці для норм прибутку 
+цих акцій;
+в) на основі цих акцій сформувати ПЦП щодо збереження капіталу;
+г) сформувати ПЦП щодо одержання бажаного прибутку, якщо 
+mΠ = 5% ;
+
+Код:
+import numpy as np
+import pandas as pd
+from scipy.optimize import minimize
+
+data = {
+    'Жидачівський ЦПК': [0.16, 0.16, 0.20, 0.25, 0.10, 0.25, 0.10, 0.08, 0.07, 0.15, 0.15],
+    'Запоріж-транспорт': [0.15, 0.12, 0.15, 0.10, 0.11, 0.11, 0.11, 0.12, 0.11, 0.11, 0.18],
+    'Пивзавод "Рогань"': [40, 37, 35, 40, 80, 110, 40, 30, 33, 35, 60]
+}
+
+df = pd.DataFrame(data)
+
+# Обчислення очікуваної норми прибутку (середнє значення)
+expected_returns = df.mean()
+
+# Обчислення ризику (середньоквадратичне відхилення)
+risk = df.std()
+
+print("Очікувана норма прибутку (%):")
+print(expected_returns)
+print("\nРизик (середньоквадратичне відхилення):")
+print(risk)
+
+# Коваріаційна матриця
+cov_matrix = df.cov()
+print("\nКоваріаційна матриця:")
+print(cov_matrix)
+
+# Кореляційна матриця
+corr_matrix = df.corr()
+print("\nКореляційна матриця:")
+print(corr_matrix)
+
+# Оптимізація портфелю: мінімізація ризику
+num_assets = len(data)
+initial_weights = np.ones(num_assets) / num_assets
+
+# Функція для розрахунку ризику портфелю
+def portfolio_risk(weights, cov_matrix):
+    return np.sqrt(np.dot(weights.T, np.dot(cov_matrix, weights)))
+
+# Обмеження: сума ваг = 1
+constraints = ({'type': 'eq', 'fun': lambda weights: np.sum(weights) - 1})
+
+# Обмеження на ваги (ваги від 0 до 1)
+bounds = [(0, 1) for _ in range(num_assets)]
+
+# Мінімізація ризику
+result = minimize(portfolio_risk, initial_weights, args=(cov_matrix,), method='SLSQP', bounds=bounds, constraints=constraints)
+
+optimal_weights = result.x
+
+print("\nОптимальні ваги для мінімального ризику:")
+for i, stock in enumerate(data.keys()):
+    print(f"{stock}: {optimal_weights[i]:.2f}")
+
+# Функція для розрахунку очікуваного прибутку портфелю
+def portfolio_return(weights, returns):
+    return np.dot(weights, returns)
+
+# Задача для досягнення бажаної норми прибутку (mП = 5%)
+desired_return = 0.05  
+
+# Додаткове обмеження на очікувану норму прибутку
+constraints = (
+    {'type': 'eq', 'fun': lambda weights: np.sum(weights) - 1},
+    {'type': 'eq', 'fun': lambda weights: portfolio_return(weights, expected_returns) - desired_return}
+)
+
+# Оптимізація для бажаного прибутку
+result = minimize(portfolio_risk, initial_weights, args=(cov_matrix,), method='SLSQP', bounds=bounds, constraints=constraints)
+
+optimal_weights_desired_return = result.x
+
+print("\nОптимальні ваги для досягнення бажаного прибутку (mП = 5%):")
+for i, stock in enumerate(data.keys()):
+    print(f"{stock}: {optimal_weights_desired_return[i]:.2f}")
